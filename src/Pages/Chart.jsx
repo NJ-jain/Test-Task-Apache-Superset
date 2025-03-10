@@ -5,7 +5,6 @@ import Loading from "../Components/Loading";
 import { useNavigate } from "react-router-dom";
 
 const BrushableStackedBarChart = () => {
-  // Process raw data into a chart-friendly format
   const [dataSave, setDataSave] = useState(null);
   const navigate = useNavigate();
   useEffect(() => {
@@ -32,21 +31,18 @@ const BrushableStackedBarChart = () => {
     let xAxisData = [];
     let cityData = {};
     let validCities = new Set();
-    // Step 1: Identify valid cities (cities having at least one non-null, non-zero value)
     dataSave?.result[0]?.data?.forEach((dataPoint) => {
       Object.entries(dataPoint).forEach(([key, value]) => {
         if (key !== "order_date" && value !== null && value > 0) {
-          validCities.add(key); // Add city to the set if it has valid data
+          validCities.add(key);
         }
       });
     });
 
-    // Step 2: Process each dataPoint and format xAxisData correctly
     dataSave?.result[0]?.data?.forEach((dataPoint) => {
       const date = new Date(dataPoint.order_date);
       const year = date.getFullYear();
       const month = date.toLocaleString("default", { month: "short" });
-      // Check if the year is already added to xAxisData
       if (!xAxisData.some((item) => item.year === year)) {
         xAxisData.push({ year });
       }
@@ -58,7 +54,6 @@ const BrushableStackedBarChart = () => {
         yearObj.months.push(month);
       }
 
-      // Step 3: Store only valid cities' data
       validCities.forEach((city) => {
         if (!cityData[city]) {
           cityData[city] = [];
@@ -67,7 +62,6 @@ const BrushableStackedBarChart = () => {
         cityData[city].push(value);
       });
     });
-    // Step 4: Flatten xAxisData for the chart's x-axis
     let flattenedXAxisData = [];
     xAxisData.forEach((item) => {
       flattenedXAxisData.push(item.year);
@@ -77,7 +71,6 @@ const BrushableStackedBarChart = () => {
   };
 
   const { xAxisData, cityData } = processData();
-  // Function to format y-axis values into 'M' and 'k' format
   const formatYAxis = (value) => {
     if (value >= 1000000) {
       return `${(value / 1000000).toFixed(1)}M`;
@@ -87,7 +80,6 @@ const BrushableStackedBarChart = () => {
     return value;
   };
 
-  // Prepare the option for ECharts
   const option = {
     legend: {
       type: "scroll",
@@ -123,9 +115,8 @@ const BrushableStackedBarChart = () => {
           (item) => item.value !== null && item.value > 0
         );
         if (validParams.length === 0) return "";
-        let dateValue = params[0].axisValueLabel; // Get the x-axis label (could be a year or a month)
+        let dateValue = params[0].axisValueLabel; 
         let formattedDate = "";
-        // 🔹 Extract the correct year from `xAxisData`
         let year = "";
         for (let i = params[0].dataIndex; i >= 0; i--) {
           if (/^\d{4}$/.test(xAxisData[i])) {
@@ -133,21 +124,17 @@ const BrushableStackedBarChart = () => {
             break;
           }
         }
-        //  If the label is a year (January), show only the year
         if (/^\d{4}$/.test(dateValue)) {
           formattedDate = dateValue;
         } else if (year) {
-          //  Convert month name (e.g., "Feb") to "YYYY-MM-DD"
           let monthIndex =
             new Date(Date.parse(`${dateValue} 1, 2000`)).getMonth() + 1;
           formattedDate = `${year}-${String(monthIndex).padStart(2, "0")}-01`;
         } else {
-          formattedDate = "Unknown Date"; // Fallback in case of error
+          formattedDate = "Unknown Date"; 
         }
-        //  Display formatted date at the top
         tooltipText += `<b>${formattedDate}</b><br/>`;
 
-        //  Add valid city data to the tooltip
         validParams.forEach((item) => {
           tooltipText += `
             <span style="display:inline-block;width:10px;height:10px;background-color:${
@@ -168,11 +155,9 @@ const BrushableStackedBarChart = () => {
       axisLabel: {
         interval: 0,
         formatter: function (value) {
-          // Show year if it's January
           if (/^\d{4}$/.test(value)) {
             return value;
           }
-          // Show only "Apr", "Jul", "Oct"
           if (["Apr", "Jul", "Oct"].includes(value)) {
             return value;
           }
@@ -198,7 +183,7 @@ const BrushableStackedBarChart = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-700 to-purple-800 p-6 gap-5">
-      <div className="w-[64%] flex items-end justify-end">
+      <div className="w-full max-w-6xl flex items-end justify-end">
         <button
           className="inline-flex cursor-pointer items-center gap-1 rounded border border-slate-300 bg-gradient-to-b from-slate-50 to-slate-200 px-4 py-2 font-semibold hover:opacity-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-300 focus-visible:ring-offset-2 active:opacity-100"
           onClick={() => {
